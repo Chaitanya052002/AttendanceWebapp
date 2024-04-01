@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Report Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        .navbar {
+            background-color: #333;
+            overflow: hidden;
+            padding: 10px 0;
+        }
+
+        .navbar-brand {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        .navbar-brand:hover {
+            background-color: #ddd;
+            color: #333;
+        }
+
+        .profile-dropdown {
+            float: right;
+            margin-top: 14px;
+        }
+
+        .logout-button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-right: 20px;
+        }
+
+        .logout-button:hover {
+            background-color: #0056b3;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            color: #333;
+        }
+
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f0f0f0;
+            transition: background-color 0.3s;
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: block;
+            margin: 10px auto;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #backButton {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 999;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        #backButton:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="navbar">
+        <a class="navbar-brand" href="#">Attendance system</a>
+        <div class="profile-dropdown">
+            <button class="logout-button" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <h1>Admin Attendance View</h1>
+
+    <table id="userTable">
+        <thead>
+            <tr id="columnHeaders">
+                <!-- Column headers will be dynamically added here -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data rows will be dynamically added here -->
+        </tbody>
+    </table>
+
+    <button id="backButton" onclick="goBack()">Back</button>
+
+    <script>
+        // JavaScript
+
+        function goBack() {
+            window.location.href = '/admin';
+        }
+
+        function logout() {
+            window.location.href = '/logout';
+        }
+
+        function fetchAttendanceData(phoneno) {
+            fetch(`/mappinguser/attendance/${phoneno}`)
+                .then(response => response.json())
+                .then(attendanceData => {
+                    const tableBody = document.querySelector('#userTable tbody');
+                    tableBody.innerHTML = '';
+
+                    attendanceData.forEach(entry => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${entry.date}</td>
+                            <td>${entry.signtime}</td>
+                            <td>${entry.singoutime}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+
+                    const columnHeaders = document.querySelector('#columnHeaders');
+                    columnHeaders.innerHTML = `
+                        <th>Date</th>
+                        <th>Signin Time</th>
+                        <th>Signout Time</th>
+                    `;
+
+                    document.getElementById('backButton').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching attendance data:', error);
+                });
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch('/mappingusers')
+                .then(response => response.json())
+                .then(mappingusers => {
+                    const tableBody = document.querySelector('#userTable tbody');
+                    tableBody.innerHTML = '';
+
+                    mappingusers.forEach(user => {
+                        const row = document.createElement('tr');
+                        row.setAttribute('data-phoneno', user.phoneno);
+                        row.innerHTML = `
+                            <td>${user.username}</td>
+                            <td><button onclick="fetchAttendanceData('${user.phoneno}')">View Attendance</button></td>
+                        `;
+                        
+                        tableBody.appendChild(row);
+                    });
+
+                    const columnHeaders = document.querySelector('#columnHeaders');
+                    columnHeaders.innerHTML = `
+                        <th>Usernames</th>
+                        <th>Userwise attendance</th>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error fetching user data:', error);
+                });
+        });
+
+    </script>
+    
+</body>
+</html>
